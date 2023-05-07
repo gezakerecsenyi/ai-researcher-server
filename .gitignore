@@ -1,0 +1,7 @@
+# Project exclude paths
+/getCompletion.js
+/index.js
+/processQuery.js
+/search.js
+/template.js
+/utils.js
