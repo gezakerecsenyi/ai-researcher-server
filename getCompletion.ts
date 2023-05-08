@@ -1,9 +1,8 @@
 import { ChatCompletionRequestMessage } from 'openai';
-import { openai } from './index';
 import processQuery from './processQuery';
-import { BingResult, search } from './search';
+import requestGPT from './requestGPT';
+import { BingResult } from './search';
 import { getInitText, systemText } from './template';
-import { expectCloseSpeechMark, expectDocumentReference, formatSearchResults, lookupWordsInText } from './utils';
 
 export interface Document {
     title: string;
@@ -34,6 +33,7 @@ export default async function getCompletion(
     pastMessages: ChatCompletionRequestMessage[],
     ignoreIds: string[],
     prevData: ResponseRecallData,
+    callTracker: () => void,
     forceResponse?: string,
 ): Promise<CompletionReport> {
     let reports: string[] = [];
@@ -42,37 +42,30 @@ export default async function getCompletion(
     let duplicateRun = 0;
 
     async function getContinuation(): Promise<ResponseRecallData | undefined | 0 | false> {
-        await new Promise((resolve) => {
-            setTimeout(resolve, 300);
-        });
-
         let response: string;
         if (forceResponse) {
             response = forceResponse;
         } else {
-            const rawRes = await openai.createChatCompletion({
-                model: 'gpt-4',
-                messages: [
-                    {
-                        role: 'system',
-                        content: systemText,
-                    },
-                    {
-                        role: 'user',
-                        name: 'Researcher',
-                        content: getInitText(
-                            title,
-                            documents.map(e => e.title),
-                        ),
-                    },
-                    ...pastMessages,
-                ],
-                temperature: 0.6,
-                n: 1,
-                presence_penalty: 0.5,
-                frequency_penalty: 0.3,
-                max_tokens: 600,
-            });
+            const rawRes = await requestGPT(
+                {
+                    messages: [
+                        {
+                            role: 'system',
+                            content: systemText,
+                        },
+                        {
+                            role: 'user',
+                            name: 'Researcher',
+                            content: getInitText(
+                                title,
+                                documents.map(e => e.title),
+                            ),
+                        },
+                        ...pastMessages,
+                    ],
+                },
+                callTracker,
+            );
 
             response = rawRes.data.choices[0].message!.content;
         }
@@ -88,7 +81,42 @@ export default async function getCompletion(
         console.log(`Processing response: "${response}"`);
 
         if (response.length > 500) {
-            reports.push(response);
+            if (response.split(' ').length > 1000) {
+                reports.push(response);
+                return false;
+            }
+
+            const continuationRes = await requestGPT(
+                {
+                    messages: [
+                        {
+                            role: 'system',
+                            content: systemText,
+                        },
+                        {
+                            role: 'user',
+                            name: 'Researcher',
+                            content: getInitText(
+                                title,
+                                documents.map(e => e.title),
+                            ),
+                        },
+                        ...pastMessages,
+                        {
+                            role: 'assistant',
+                            content: response,
+                        },
+                        {
+                            role: 'user',
+                            name: 'Researcher',
+                            content: 'Thank you - that looks good, but is too short in its current form. Please add another section(s), using more of the research you have already gathered to continue writing.',
+                        },
+                    ],
+                },
+                callTracker,
+            );
+
+            reports.push(`${response}\n\n[... re-prompted ...]\n\n${continuationRes.data.choices[0].message!.content}`);
             return false;
         }
 
@@ -96,7 +124,7 @@ export default async function getCompletion(
             response,
             prevData,
             documents,
-            ignoreIds
+            ignoreIds,
         );
     }
 

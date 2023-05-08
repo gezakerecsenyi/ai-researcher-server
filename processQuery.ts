@@ -99,7 +99,7 @@ export default async function processQuery(response: string, prevData: ResponseR
                     gptResponse: response,
                     type: 'document',
                     query: '',
-                    resultOffered: 'Sounds great! Please send your 300-word report, mentioning any sources that you have used in its writing.',
+                    resultOffered: 'Sounds great! Please send your 1500-word report, mentioning any sources that you have used in its writing. Remember that it should be quite long and discursive - consider breaking it into multiple sections, and writing 2-3 paragraphs for each.',
                     resultId: '',
                     isEmpty: true,
                 };

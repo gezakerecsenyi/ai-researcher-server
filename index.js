@@ -24,108 +24,120 @@ exports.openai = new openai_1.OpenAIApi(configuration);
 function getReports(title, documents, initialSearch, reportCount = 1) {
     return __awaiter(this, void 0, void 0, function* () {
         let attempts = 0;
-        while (attempts < 5) {
-            console.log('out of backtracks. going again.');
-            let currentState = {
-                badCycle: 0,
-                chatSoFar: [],
-                depth: 0,
-                id: 0,
-                lastResponse: {
-                    gptResponse: '',
-                    type: 'document',
-                    query: '',
-                    resultOffered: '',
-                    resultId: '',
-                },
-                lastReport: null,
-                matchesForThis: [],
-            };
-            let reportsGathered = [];
-            let possibleAlternatePaths = [];
-            function evaluateState(state) {
-                return __awaiter(this, void 0, void 0, function* () {
-                    const { lastReport, chatSoFar, matchesForThis, lastResponse, badCycle, depth, } = state;
-                    const reportedState = Object.assign(Object.assign({}, state), { lastReport: yield (0, getCompletion_1.default)(title, documents, chatSoFar, matchesForThis, lastResponse, currentState.depth === 0 && initialSearch ?
-                            `Search the internet for "${initialSearch}"` :
-                            undefined) });
-                    reportsGathered.push(...reportedState.lastReport.reportsAscertained);
-                    const continuations = [];
-                    for (let continuation of reportedState.lastReport.continuation) {
-                        const stateHere = Object.assign({}, reportedState);
-                        stateHere.depth++;
-                        stateHere.chatSoFar = [
-                            ...stateHere.chatSoFar,
-                            {
-                                role: 'assistant',
-                                content: continuation.gptResponse,
-                            },
-                            {
-                                role: 'user',
-                                name: 'Researcher',
-                                content: continuation.resultOffered + (depth >= 12 ?
-                                    '\nAlso, you could consider beginning to write the report soon! Let me know when you\'re ready.' :
-                                    ''),
-                            },
-                        ];
-                        if (continuation.isBad) {
-                            stateHere.badCycle++;
+        let totalCalls = 0;
+        try {
+            while (attempts < 5) {
+                console.log('out of backtracks. going again.');
+                let currentState = {
+                    badCycle: 0,
+                    chatSoFar: [],
+                    depth: 0,
+                    id: 0,
+                    lastResponse: {
+                        gptResponse: '',
+                        type: 'document',
+                        query: '',
+                        resultOffered: '',
+                        resultId: '',
+                    },
+                    lastReport: null,
+                    matchesForThis: [],
+                };
+                let reportsGathered = [];
+                let possibleAlternatePaths = [];
+                function evaluateState(state) {
+                    return __awaiter(this, void 0, void 0, function* () {
+                        const { lastReport, chatSoFar, matchesForThis, lastResponse, badCycle, depth, } = state;
+                        const reportedState = Object.assign(Object.assign({}, state), { lastReport: yield (0, getCompletion_1.default)(title, documents, chatSoFar, matchesForThis, lastResponse, () => {
+                                totalCalls++;
+                                if (totalCalls > 40) {
+                                    throw new Error();
+                                }
+                            }, currentState.depth === 0 && initialSearch ?
+                                `Search the internet for "${initialSearch}"` :
+                                undefined) });
+                        reportsGathered.push(...reportedState.lastReport.reportsAscertained);
+                        const continuations = [];
+                        for (let continuation of reportedState.lastReport.continuation) {
+                            const stateHere = Object.assign({}, reportedState);
+                            stateHere.depth++;
+                            stateHere.chatSoFar = [
+                                ...stateHere.chatSoFar,
+                                {
+                                    role: 'assistant',
+                                    content: continuation.gptResponse,
+                                },
+                                {
+                                    role: 'user',
+                                    name: 'Researcher',
+                                    content: continuation.resultOffered + (depth >= 12 ?
+                                        '\nAlso, you could consider beginning to write the report soon! Let me know when you\'re ready.' :
+                                        ''),
+                                },
+                            ];
+                            if (continuation.isBad) {
+                                stateHere.badCycle++;
+                            }
+                            else {
+                                stateHere.badCycle = 0;
+                            }
+                            if (!continuation.isEmpty) {
+                                stateHere.matchesForThis = lastResponse.type !== 'internet' &&
+                                    lastResponse.query === continuation.query &&
+                                    lastResponse.locator === continuation.locator ?
+                                    [
+                                        ...matchesForThis,
+                                        continuation.resultId,
+                                    ] :
+                                    [continuation.resultId];
+                                stateHere.lastResponse = continuation;
+                            }
+                            continuations.push(stateHere);
+                        }
+                        return continuations;
+                    });
+                }
+                let failureState = false;
+                let forceRecovery = false;
+                while (reportsGathered.length < reportCount) {
+                    while (currentState.depth > 20 || currentState.badCycle > 3 || forceRecovery) {
+                        if (possibleAlternatePaths.length) {
+                            console.log('\n\n\nbacktracking!\n\n\n');
+                            const restoredState = Math.floor(Math.random() * possibleAlternatePaths.length);
+                            currentState = possibleAlternatePaths[restoredState];
+                            possibleAlternatePaths.splice(restoredState, 1);
                         }
                         else {
-                            stateHere.badCycle = 0;
+                            failureState = true;
+                            break;
                         }
-                        if (!continuation.isEmpty) {
-                            stateHere.matchesForThis = lastResponse.type !== 'internet' &&
-                                lastResponse.query === continuation.query &&
-                                lastResponse.locator === continuation.locator ?
-                                [
-                                    ...matchesForThis,
-                                    continuation.resultId,
-                                ] :
-                                [continuation.resultId];
-                            stateHere.lastResponse = continuation;
-                        }
-                        continuations.push(stateHere);
+                        forceRecovery = false;
                     }
-                    return continuations;
-                });
-            }
-            let failureState = false;
-            let forceRecovery = false;
-            while (reportsGathered.length < reportCount) {
-                while (currentState.depth > 20 || currentState.badCycle > 3 || forceRecovery) {
-                    if (possibleAlternatePaths.length) {
-                        console.log('\n\n\nbacktracking!\n\n\n');
-                        const restoredState = Math.floor(Math.random() * possibleAlternatePaths.length);
-                        currentState = possibleAlternatePaths[restoredState];
-                        possibleAlternatePaths.splice(restoredState, 1);
-                    }
-                    else {
-                        failureState = true;
+                    if (failureState) {
                         break;
                     }
-                    forceRecovery = false;
+                    console.log(`Running from depth ${currentState.depth}.`);
+                    const continuations = yield evaluateState(currentState);
+                    if (continuations.length) {
+                        possibleAlternatePaths.push(currentState, ...continuations.slice(1));
+                        currentState = continuations[0];
+                    }
+                    else {
+                        forceRecovery = true;
+                    }
+                    console.log(currentState);
                 }
-                if (failureState) {
-                    break;
+                if (failureState && !reportsGathered.length) {
+                    attempts++;
+                    continue;
                 }
-                console.log(`Running from depth ${currentState.depth}.`);
-                const continuations = yield evaluateState(currentState);
-                if (continuations.length) {
-                    possibleAlternatePaths.push(currentState, ...continuations.slice(1));
-                    currentState = continuations[0];
-                }
-                else {
-                    forceRecovery = true;
-                }
-                console.log(currentState);
+                return reportsGathered;
             }
-            if (failureState && !reportsGathered.length) {
-                attempts++;
-                continue;
-            }
-            return reportsGathered;
         }
+        catch (e) {
+            return [];
+        }
+        return [];
     });
 }
 const app = (0, express_1.default)();

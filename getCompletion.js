@@ -12,26 +12,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const index_1 = require("./index");
 const processQuery_1 = __importDefault(require("./processQuery"));
+const requestGPT_1 = __importDefault(require("./requestGPT"));
 const template_1 = require("./template");
-function getCompletion(title, documents, pastMessages, ignoreIds, prevData, forceResponse) {
+function getCompletion(title, documents, pastMessages, ignoreIds, prevData, callTracker, forceResponse) {
     return __awaiter(this, void 0, void 0, function* () {
         let reports = [];
         let responseSet = new Set();
         let duplicateRun = 0;
         function getContinuation() {
             return __awaiter(this, void 0, void 0, function* () {
-                yield new Promise((resolve) => {
-                    setTimeout(resolve, 300);
-                });
                 let response;
                 if (forceResponse) {
                     response = forceResponse;
                 }
                 else {
-                    const rawRes = yield index_1.openai.createChatCompletion({
-                        model: 'gpt-4',
+                    const rawRes = yield (0, requestGPT_1.default)({
                         messages: [
                             {
                                 role: 'system',
@@ -44,12 +40,7 @@ function getCompletion(title, documents, pastMessages, ignoreIds, prevData, forc
                             },
                             ...pastMessages,
                         ],
-                        temperature: 0.6,
-                        n: 1,
-                        presence_penalty: 0.5,
-                        frequency_penalty: 0.3,
-                        max_tokens: 600,
-                    });
+                    }, callTracker);
                     response = rawRes.data.choices[0].message.content;
                 }
                 if (responseSet.has(response)) {
@@ -60,7 +51,34 @@ function getCompletion(title, documents, pastMessages, ignoreIds, prevData, forc
                 responseSet.add(response);
                 console.log(`Processing response: "${response}"`);
                 if (response.length > 500) {
-                    reports.push(response);
+                    if (response.split(' ').length > 1000) {
+                        reports.push(response);
+                        return false;
+                    }
+                    const continuationRes = yield (0, requestGPT_1.default)({
+                        messages: [
+                            {
+                                role: 'system',
+                                content: template_1.systemText,
+                            },
+                            {
+                                role: 'user',
+                                name: 'Researcher',
+                                content: (0, template_1.getInitText)(title, documents.map(e => e.title)),
+                            },
+                            ...pastMessages,
+                            {
+                                role: 'assistant',
+                                content: response,
+                            },
+                            {
+                                role: 'user',
+                                name: 'Researcher',
+                                content: 'Thank you - that looks good, but is too short in its current form. Please add another section(s), using more of the research you have already gathered to continue writing.',
+                            },
+                        ],
+                    }, callTracker);
+                    reports.push(`${response}\n\n[... re-prompted ...]\n\n${continuationRes.data.choices[0].message.content}`);
                     return false;
                 }
                 return yield (0, processQuery_1.default)(response, prevData, documents, ignoreIds);
