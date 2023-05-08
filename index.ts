@@ -3,10 +3,9 @@ import cors from 'cors';
 import express from 'express';
 import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from 'openai';
 import getCompletion, { CompletionReport, Document, ResponseRecallData } from './getCompletion';
-import processQuery from './processQuery';
 
 const configuration = new Configuration({
-    apiKey: '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',
+    apiKey: '',
 });
 export const openai = new OpenAIApi(configuration);
 
@@ -64,7 +63,7 @@ async function getReports(title: string, documents: Document[], initialSearch?: 
                     lastResponse,
                     currentState.depth === 0 && initialSearch ?
                         `Search the internet for "${initialSearch}"` :
-                        undefined
+                        undefined,
                 ),
             };
 
@@ -139,7 +138,7 @@ async function getReports(title: string, documents: Document[], initialSearch?: 
             const continuations = await evaluateState(currentState);
 
             if (continuations.length) {
-                possibleAlternatePaths.push(...continuations.slice(1));
+                possibleAlternatePaths.push(currentState, ...continuations.slice(1));
                 currentState = continuations[0];
             } else {
                 forceRecovery = true;
@@ -157,7 +156,7 @@ async function getReports(title: string, documents: Document[], initialSearch?: 
 }
 
 const app = express();
-const port = 3200;
+const port = 3000;
 
 app.use(cors());
 
@@ -180,6 +179,8 @@ app.get('/query', (req, res) => {
     }
 });
 
+app.use(express.static('build'));
+
 app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
+    console.log(`App listening on port ${port}`);
 });

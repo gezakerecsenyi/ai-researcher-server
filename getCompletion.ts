@@ -102,7 +102,7 @@ export default async function getCompletion(
 
     let lastCompletion = '';
     let completions = [];
-    const attemptsHere = Math.round(Math.random() * 3) + 1;
+    const attemptsHere = Math.round(Math.random() * 1) + 1;
     for (let completionIndex = 0; completionIndex < attemptsHere; completionIndex++) {
         console.log(`testing continuation ${completionIndex}/${attemptsHere}`);
 
