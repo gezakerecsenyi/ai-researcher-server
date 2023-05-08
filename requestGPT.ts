@@ -8,8 +8,10 @@ export default async function requestGPT(data: Partial<CreateChatCompletionReque
     }
 
     await new Promise((resolve) => {
-        setTimeout(resolve, 300);
+        setTimeout(resolve, 1000);
     });
+
+    console.log('making new chatgpt req');
 
     return await openai.createChatCompletion({
         model: 'gpt-4',

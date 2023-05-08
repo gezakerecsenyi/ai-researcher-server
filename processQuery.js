@@ -28,7 +28,7 @@ function processQuery(response, prevData, documents, ignoreIds = []) {
                     'test',
                     'match',
                 ].some(e => response.toLowerCase().includes(e)) &&
-                prevData.type === 'website') {
+                prevData.type === 'internet') {
                 const query = (0, utils_1.expectCloseSpeechMark)(response);
                 return (0, utils_1.lookupWordsInText)(prevData.searchDomain, query, {
                     locator: prevData.locator,
@@ -165,7 +165,8 @@ function processQuery(response, prevData, documents, ignoreIds = []) {
                 if (prevData.type === 'internet') {
                     console.log('asked to get results for', prevData);
                     const res = yield fetch(prevData.locator).then(t => t.text());
-                    return (0, utils_1.lookupWordsInText)(res, searchQuery, {
+                    const text = new DOMParser().parseFromString(res, 'text/html').body.innerText;
+                    return (0, utils_1.lookupWordsInText)(text, searchQuery, {
                         locator: prevData.locator,
                         gptResponse: response,
                     }, [], true);

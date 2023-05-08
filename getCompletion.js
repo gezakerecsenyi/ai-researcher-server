@@ -77,6 +77,9 @@ function getCompletion(title, documents, pastMessages, ignoreIds, prevData, call
                                 content: 'Thank you - that looks good, but is too short in its current form. Please add another section(s), using more of the research you have already gathered to continue writing.',
                             },
                         ],
+                        temperature: 0.85,
+                        presence_penalty: 0.75,
+                        frequency_penalty: 0.55,
                     }, callTracker);
                     reports.push(`${response}\n\n[... re-prompted ...]\n\n${continuationRes.data.choices[0].message.content}`);
                     return false;
@@ -86,9 +89,9 @@ function getCompletion(title, documents, pastMessages, ignoreIds, prevData, call
         }
         let lastCompletion = '';
         let completions = [];
-        const attemptsHere = Math.round(Math.random() * 1) + 1;
+        const attemptsHere = Math.floor(Math.random() * 1) + 1;
         for (let completionIndex = 0; completionIndex < attemptsHere; completionIndex++) {
-            console.log(`testing continuation ${completionIndex}/${attemptsHere}`);
+            console.log(`testing continuation ${completionIndex + 1}/${attemptsHere}`);
             const completion = yield getContinuation();
             if (completion) {
                 completions.push(completion);

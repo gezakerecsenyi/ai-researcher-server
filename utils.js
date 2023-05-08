@@ -62,11 +62,12 @@ function expectDocumentReference(string, documents) {
     return [true, queryDocument, remainingString];
 }
 exports.expectDocumentReference = expectDocumentReference;
-function lookupWordsInText(text, searchQuery, responseHeaders, ignore = [], isFromWebsite = false) {
+function lookupWordsInText(text, rawSearchQuery, responseHeaders, ignore = [], isFromWebsite = false) {
+    const searchQuery = rawSearchQuery.trim();
     let res = text.indexOf(searchQuery);
     if (res > -1) {
         const rawResult = text.slice(Math.max(0, res - 150), res + 150);
-        return Object.assign(Object.assign({}, responseHeaders), { resultOffered: `I found ${ignore.length ? 'another' : 'a'} mention${isFromWebsite ? ' on that website' : ''} - "... ${rawResult} ..."`, resultId: rawResult, type: 'document', query: searchQuery, searchDomain: text });
+        return Object.assign(Object.assign({}, responseHeaders), { resultOffered: `I found ${ignore.length ? 'another' : 'a'} mention${isFromWebsite ? ' on that website' : ''} - "... ${rawResult.trim()} ..."`, resultId: rawResult, type: 'document', query: searchQuery, searchDomain: text });
     }
     if (!res) {
         const words = searchQuery.split(' ');
@@ -78,7 +79,7 @@ function lookupWordsInText(text, searchQuery, responseHeaders, ignore = [], isFr
                     const rawResult = text.slice(Math.max(0, res - 150), res + 150);
                     if (ignore.includes(rawResult))
                         continue;
-                    return Object.assign(Object.assign({}, responseHeaders), { resultOffered: `I couldn't find an exact-text match${isFromWebsite ? ' on that website' : ''}, but I found a match for just "${substr}" - "... ${rawResult} ...". If necessary, please try searching again with alternative phrasing.`, resultId: rawResult, type: 'document', query: searchQuery, searchDomain: text });
+                    return Object.assign(Object.assign({}, responseHeaders), { resultOffered: `I couldn't find an exact-text match${isFromWebsite ? ' on that website' : ''}, but I found a match for just "${substr}" - "... ${rawResult.trim()} ...". If necessary, please try searching again with alternative phrasing.`, resultId: rawResult, type: 'document', query: searchQuery, searchDomain: text });
                 }
             }
         }

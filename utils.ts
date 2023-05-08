@@ -68,13 +68,14 @@ export function expectDocumentReference(string: string, documents: Document[]): 
     return [true, queryDocument, remainingString];
 }
 
-export function lookupWordsInText(text: string, searchQuery: string, responseHeaders: Pick<ResponseRecallData, 'locator' | 'gptResponse'>, ignore: string[] = [], isFromWebsite: boolean = false): ResponseRecallData {
+export function lookupWordsInText(text: string, rawSearchQuery: string, responseHeaders: Pick<ResponseRecallData, 'locator' | 'gptResponse'>, ignore: string[] = [], isFromWebsite: boolean = false): ResponseRecallData {
+    const searchQuery = rawSearchQuery.trim();
     let res = text.indexOf(searchQuery);
     if (res > -1) {
         const rawResult = text.slice(Math.max(0, res - 150), res + 150);
         return {
             ...responseHeaders,
-            resultOffered: `I found ${ignore.length ? 'another' : 'a'} mention${isFromWebsite ? ' on that website' : ''} - "... ${rawResult} ..."`,
+            resultOffered: `I found ${ignore.length ? 'another' : 'a'} mention${isFromWebsite ? ' on that website' : ''} - "... ${rawResult.trim()} ..."`,
             resultId: rawResult,
             type: 'document',
             query: searchQuery,
@@ -96,7 +97,7 @@ export function lookupWordsInText(text: string, searchQuery: string, responseHea
 
                     return {
                         ...responseHeaders,
-                        resultOffered: `I couldn't find an exact-text match${isFromWebsite ? ' on that website' : ''}, but I found a match for just "${substr}" - "... ${rawResult} ...". If necessary, please try searching again with alternative phrasing.`,
+                        resultOffered: `I couldn't find an exact-text match${isFromWebsite ? ' on that website' : ''}, but I found a match for just "${substr}" - "... ${rawResult.trim()} ...". If necessary, please try searching again with alternative phrasing.`,
                         resultId: rawResult,
                         type: 'document',
                         query: searchQuery,

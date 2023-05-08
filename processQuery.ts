@@ -19,7 +19,7 @@ export default async function processQuery(response: string, prevData: ResponseR
                 'test',
                 'match',
             ].some(e => response.toLowerCase().includes(e)) &&
-            prevData.type === 'website'
+            prevData.type === 'internet'
         ) {
             const query = expectCloseSpeechMark(response);
 
@@ -195,9 +195,10 @@ export default async function processQuery(response: string, prevData: ResponseR
             if (prevData.type === 'internet') {
                 console.log('asked to get results for', prevData);
                 const res = await fetch(prevData.locator!).then(t => t.text());
+                const text = new DOMParser().parseFromString(res, 'text/html').body.innerText;
 
                 return lookupWordsInText(
-                    res,
+                    text,
                     searchQuery,
                     {
                         locator: prevData.locator,
