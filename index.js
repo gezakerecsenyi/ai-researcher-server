@@ -22,7 +22,7 @@ const configuration = new openai_1.Configuration({
 });
 exports.openai = new openai_1.OpenAIApi(configuration);
 const errorMessage = '__too_many_calls__';
-function getReports(title, documents, initialSearch, reportCount = 1, callLimit = (reportCount + 1) * 20) {
+function getReports(title, documents, initialSearch, reportCount = 1, callLimit = (reportCount + 1) * 30) {
     return __awaiter(this, void 0, void 0, function* () {
         let attempts = 0;
         let totalCalls = 0;

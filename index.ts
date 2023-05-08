@@ -21,7 +21,7 @@ interface HistoryState {
 
 const errorMessage = '__too_many_calls__';
 
-async function getReports(title: string, documents: Document[], initialSearch?: string, reportCount: number = 1, callLimit: number = (reportCount + 1) * 20): Promise<string[]> {
+async function getReports(title: string, documents: Document[], initialSearch?: string, reportCount: number = 1, callLimit: number = (reportCount + 1) * 30): Promise<string[]> {
     let attempts = 0;
     let totalCalls = 0;
 
