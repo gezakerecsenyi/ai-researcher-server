@@ -21,7 +21,7 @@ const configuration = new openai_1.Configuration({
     apiKey: '',
 });
 exports.openai = new openai_1.OpenAIApi(configuration);
-function getReports(title, documents, initialSearch, reportCount = 1) {
+function getReports(title, documents, initialSearch, reportCount = 1, callLimit = (reportCount + 1) * 20) {
     return __awaiter(this, void 0, void 0, function* () {
         let attempts = 0;
         let totalCalls = 0;
@@ -50,7 +50,7 @@ function getReports(title, documents, initialSearch, reportCount = 1) {
                         const { lastReport, chatSoFar, matchesForThis, lastResponse, badCycle, depth, } = state;
                         const reportedState = Object.assign(Object.assign({}, state), { lastReport: yield (0, getCompletion_1.default)(title, documents, chatSoFar, matchesForThis, lastResponse, () => {
                                 totalCalls++;
-                                if (totalCalls > 40) {
+                                if (totalCalls > callLimit) {
                                     throw new Error();
                                 }
                             }, currentState.depth === 0 && initialSearch ?

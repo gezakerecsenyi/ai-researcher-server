@@ -19,7 +19,7 @@ interface HistoryState {
     lastReport: CompletionReport | null,
 }
 
-async function getReports(title: string, documents: Document[], initialSearch?: string, reportCount: number = 1): Promise<string[]> {
+async function getReports(title: string, documents: Document[], initialSearch?: string, reportCount: number = 1, callLimit: number = (reportCount + 1) * 20): Promise<string[]> {
     let attempts = 0;
     let totalCalls = 0;
 
@@ -65,7 +65,7 @@ async function getReports(title: string, documents: Document[], initialSearch?: 
                         lastResponse,
                         () => {
                             totalCalls++;
-                            if (totalCalls > 40) {
+                            if (totalCalls > callLimit) {
                                 throw new Error();
                             }
                         },
