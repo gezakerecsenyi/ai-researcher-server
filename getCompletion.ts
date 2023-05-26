@@ -2,7 +2,7 @@ import { ChatCompletionRequestMessage } from 'openai';
 import processQuery from './processQuery';
 import requestGPT from './requestGPT';
 import { BingResult } from './search';
-import { getInitText, systemText } from './template';
+import { getInitText, getSystemText } from './template';
 
 export interface Document {
     title: string;
@@ -51,7 +51,7 @@ export default async function getCompletion(
                     messages: [
                         {
                             role: 'system',
-                            content: systemText,
+                            content: getSystemText(!!documents.length),
                         },
                         {
                             role: 'user',
@@ -91,7 +91,7 @@ export default async function getCompletion(
                     messages: [
                         {
                             role: 'system',
-                            content: systemText,
+                            content: getSystemText(!!documents.length),
                         },
                         {
                             role: 'user',

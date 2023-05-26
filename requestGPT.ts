@@ -1,8 +1,10 @@
-import { ChatCompletionRequestMessage, CreateChatCompletionRequest } from 'openai';
+import { CreateChatCompletionRequest } from 'openai';
 import { openai } from './index';
-import { getInitText, systemText } from './template';
 
-export default async function requestGPT(data: Partial<CreateChatCompletionRequest> & Pick<CreateChatCompletionRequest, 'messages'>, callTracker?: () => void) {
+export default async function requestGPT(
+    data: Partial<CreateChatCompletionRequest> & Pick<CreateChatCompletionRequest, 'messages'>,
+    callTracker?: () => void,
+) {
     if (callTracker) {
         callTracker();
     }

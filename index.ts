@@ -5,7 +5,7 @@ import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from 'openai';
 import getCompletion, { CompletionReport, Document, ResponseRecallData } from './getCompletion';
 
 const configuration = new Configuration({
-    apiKey: '',
+    apiKey: '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',
 });
 export const openai = new OpenAIApi(configuration);
 
@@ -183,7 +183,10 @@ app.get('/query', (req, res) => {
     const title = req.query.title as string;
 
     console.log(req.query.docs);
-    const documents = (req.query.docs as string).split(',').map(e => JSON.parse(decodeURIComponent(e)) as Document);
+    const docsString = req.query.docs as string | undefined;
+    const documents = docsString ?
+        docsString.split(',').map(e => JSON.parse(decodeURIComponent(e)) as Document) :
+        [];
 
     const initialTerm = req.query.term as string;
     const reportCount = parseInt(req.query.count as string);
