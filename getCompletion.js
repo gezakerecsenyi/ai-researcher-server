@@ -31,7 +31,7 @@ function getCompletion(title, documents, pastMessages, ignoreIds, prevData, call
                         messages: [
                             {
                                 role: 'system',
-                                content: template_1.systemText,
+                                content: (0, template_1.getSystemText)(!!documents.length),
                             },
                             {
                                 role: 'user',
@@ -59,7 +59,7 @@ function getCompletion(title, documents, pastMessages, ignoreIds, prevData, call
                         messages: [
                             {
                                 role: 'system',
-                                content: template_1.systemText,
+                                content: (0, template_1.getSystemText)(!!documents.length),
                             },
                             {
                                 role: 'user',

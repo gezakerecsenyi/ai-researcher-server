@@ -18,7 +18,7 @@ const express_1 = __importDefault(require("express"));
 const openai_1 = require("openai");
 const getCompletion_1 = __importDefault(require("./getCompletion"));
 const configuration = new openai_1.Configuration({
-    apiKey: '',
+    apiKey: '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',
 });
 exports.openai = new openai_1.OpenAIApi(configuration);
 const errorMessage = '__too_many_calls__';
@@ -152,7 +152,10 @@ app.use((0, cors_1.default)());
 app.get('/query', (req, res) => {
     const title = req.query.title;
     console.log(req.query.docs);
-    const documents = req.query.docs.split(',').map(e => JSON.parse(decodeURIComponent(e)));
+    const docsString = req.query.docs;
+    const documents = docsString ?
+        docsString.split(',').map(e => JSON.parse(decodeURIComponent(e))) :
+        [];
     const initialTerm = req.query.term;
     const reportCount = parseInt(req.query.count);
     try {
