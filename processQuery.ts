@@ -1,6 +1,9 @@
 import { Document, ResponseRecallData } from './getCompletion';
+import getDomText from './getDomText';
 import { search } from './search';
 import { expectCloseSpeechMark, expectDocumentReference, formatSearchResults, lookupWordsInText } from './utils';
+
+import { JSDOM } from 'jsdom';
 
 export default async function processQuery(response: string, prevData: ResponseRecallData, documents: Document[], ignoreIds: string[] = []): Promise<ResponseRecallData | undefined> {
     try {
@@ -19,7 +22,7 @@ export default async function processQuery(response: string, prevData: ResponseR
                 'test',
                 'match',
             ].some(e => response.toLowerCase().includes(e)) &&
-            prevData.type === 'internet'
+            prevData.type === 'website'
         ) {
             const query = expectCloseSpeechMark(response);
 
@@ -195,7 +198,9 @@ export default async function processQuery(response: string, prevData: ResponseR
             if (prevData.type === 'internet') {
                 console.log('asked to get results for', prevData);
                 const res = await fetch(prevData.locator!).then(t => t.text());
-                const text = new DOMParser().parseFromString(res, 'text/html').body.innerText;
+                const text = await getDomText(res);
+
+                console.log('Got inner text as', text);
 
                 return lookupWordsInText(
                     text,

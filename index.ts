@@ -6,7 +6,7 @@ import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from 'openai';
 import getCompletion, { CompletionReport, Document, ResponseRecallData } from './getCompletion';
 
 const configuration = new Configuration({
-    apiKey: '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',
+    apiKey: '',
     organization: 'org-xRYHdeBLidnPhskNJHZ9WaTR',
 });
 export const openai = new OpenAIApi(configuration);
@@ -182,7 +182,7 @@ async function getReports(
 }
 
 const app = express();
-const port = 3200;
+const port = 3000;
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -215,6 +215,10 @@ app.post('/query', (req, res) => {
 
 app.use(express.static('build'));
 
-app.listen(port, () => {
+app.listen(port, async () => {
     console.log(`App listening on port ${port}`);
+
+    const listener = () => {
+    };
+    process.on('uncaughtException', listener);
 });
