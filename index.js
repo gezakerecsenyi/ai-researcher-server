@@ -13,12 +13,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.openai = void 0;
+const body_parser_1 = __importDefault(require("body-parser"));
 const cors_1 = __importDefault(require("cors"));
 const express_1 = __importDefault(require("express"));
 const openai_1 = require("openai");
 const getCompletion_1 = __importDefault(require("./getCompletion"));
 const configuration = new openai_1.Configuration({
-    apiKey: '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',
+    apiKey: 'a',
+    organization: 'org-xRYHdeBLidnPhskNJHZ9WaTR',
 });
 exports.openai = new openai_1.OpenAIApi(configuration);
 const errorMessage = '__too_many_calls__';
@@ -126,7 +128,6 @@ function getReports(title, documents, initialSearch, reportCount = 1, callLimit 
                     else {
                         forceRecovery = true;
                     }
-                    console.log(currentState);
                 }
                 if (failureState && !reportsGathered.length) {
                     attempts++;
@@ -149,24 +150,27 @@ function getReports(title, documents, initialSearch, reportCount = 1, callLimit 
 const app = (0, express_1.default)();
 const port = 3000;
 app.use((0, cors_1.default)());
-app.get('/query', (req, res) => {
+app.use(body_parser_1.default.json());
+app.use(body_parser_1.default.urlencoded({
+    extended: true,
+}));
+app.post('/query', (req, res) => {
     const title = req.query.title;
-    console.log(req.query.docs);
-    const docsString = req.query.docs;
+    const docsString = req.body.docs;
     const documents = docsString ?
         docsString.split(',').map(e => JSON.parse(decodeURIComponent(e))) :
         [];
+    console.log(documents);
     const initialTerm = req.query.term;
     const reportCount = parseInt(req.query.count);
-    try {
-        getReports(title, documents, initialTerm, reportCount)
-            .then(e => {
-            res.send(JSON.stringify({ res: e }));
-        });
-    }
-    catch (e) {
+    getReports(title, documents, initialTerm, reportCount)
+        .then(e => {
+        res.send(JSON.stringify({ res: e }));
+    })
+        .catch(e => {
+        console.log(e);
         res.sendStatus(400);
-    }
+    });
 });
 app.use(express_1.default.static('build'));
 app.listen(port, () => {

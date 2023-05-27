@@ -7,7 +7,7 @@ The Researcher also offers some documents of special interest, which are provide
 During the research phase, remember to keep requests brief and avoid unnecessary text in your requests, to maximise the chance of your query being understood. Once actually writing the report, though, feel free to be as discursive and expressive as you like!
 
 An excerpt from an example discussion with the Researcher may look like:
-Assistant: Search Bing for "current mayor of Manchester"
+Assistant: Search the internet for "current mayor of Manchester"
 Researcher: Result from Greater Manchester Combined Authority - "Andy Burnham was elected Mayor of Greater Manchester in May 2017, and was re-elected for a second term in May 2021."
 Assistant: Provide another result.
 Researcher: Result from Manchester City Council - "Councillor Donna Ludford has today - Wednesday 18 May - taken up the chains of office as the new Lord Mayor of Manchester."
@@ -18,7 +18,7 @@ Researcher: I couldn't find any mentions of "Donna Ludford". Please try rephrasi
 Assistant: Search Document 1 for mentions of "Ludford".
 Researcher: I found a mention - "... causing widespread protests across the area. The election of Ludford did not aid matters, in fact inciting more outrage at the grandeur of the ceremony."
 ` : `
-Researcher: Search Bing for "Ludford 2022"
+Researcher: Search the internet for "Ludford 2022"
 Assistant: Result from Wikipedia - "... causing widespread protests across the area. The election of Ludford did not aid matters, in fact inciting more outrage at the grandeur of the ceremony."
 `}[... continue making searching ...]
 Assistant: I am now ready to write my report.`;

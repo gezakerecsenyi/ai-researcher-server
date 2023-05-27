@@ -1,3 +1,4 @@
+import bodyParser from 'body-parser';
 import cors from 'cors';
 
 import express from 'express';
@@ -5,7 +6,8 @@ import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from 'openai';
 import getCompletion, { CompletionReport, Document, ResponseRecallData } from './getCompletion';
 
 const configuration = new Configuration({
-    apiKey: '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',
+    apiKey: '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',
+    organization: 'org-xRYHdeBLidnPhskNJHZ9WaTR',
 });
 export const openai = new OpenAIApi(configuration);
 
@@ -21,7 +23,13 @@ interface HistoryState {
 
 const errorMessage = '__too_many_calls__';
 
-async function getReports(title: string, documents: Document[], initialSearch?: string, reportCount: number = 1, callLimit: number = (reportCount + 1) * 30): Promise<string[]> {
+async function getReports(
+    title: string,
+    documents: Document[],
+    initialSearch?: string,
+    reportCount: number = 1,
+    callLimit: number = (reportCount + 1) * 30,
+): Promise<string[]> {
     let attempts = 0;
     let totalCalls = 0;
 
@@ -153,7 +161,6 @@ async function getReports(title: string, documents: Document[], initialSearch?: 
                 } else {
                     forceRecovery = true;
                 }
-                console.log(currentState);
             }
 
             if (failureState && !reportsGathered.length) {
@@ -175,30 +182,35 @@ async function getReports(title: string, documents: Document[], initialSearch?: 
 }
 
 const app = express();
-const port = 3000;
+const port = 3200;
 
 app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+    extended: true,
+}));
 
-app.get('/query', (req, res) => {
+app.post('/query', (req, res) => {
     const title = req.query.title as string;
 
-    console.log(req.query.docs);
-    const docsString = req.query.docs as string | undefined;
+    const docsString = req.body.docs as string | undefined;
     const documents = docsString ?
         docsString.split(',').map(e => JSON.parse(decodeURIComponent(e)) as Document) :
         [];
 
+    console.log(documents);
+
     const initialTerm = req.query.term as string;
     const reportCount = parseInt(req.query.count as string);
 
-    try {
-        getReports(title, documents, initialTerm, reportCount)
-            .then(e => {
-                res.send(JSON.stringify({ res: e }));
-            });
-    } catch (e) {
-        res.sendStatus(400);
-    }
+    getReports(title, documents, initialTerm, reportCount)
+        .then(e => {
+            res.send(JSON.stringify({ res: e }));
+        })
+        .catch(e => {
+            console.log(e);
+            res.sendStatus(400);
+        });
 });
 
 app.use(express.static('build'));
