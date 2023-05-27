@@ -67,14 +67,7 @@ function lookupWordsInText(text, rawSearchQuery, responseHeaders, ignore = [], i
     let res = text.indexOf(searchQuery);
     if (res > -1) {
         const rawResult = text.slice(Math.max(0, res - 150), res + 150);
-        return {
-            ...responseHeaders,
-            resultOffered: `I found ${ignore.length ? 'another' : 'a'} mention${isFromWebsite ? ' on that website' : ''} - "... ${rawResult.trim()} ..."`,
-            resultId: rawResult,
-            type: 'document',
-            query: searchQuery,
-            searchDomain: text,
-        };
+        return Object.assign(Object.assign({}, responseHeaders), { resultOffered: `I found ${ignore.length ? 'another' : 'a'} mention${isFromWebsite ? ' on that website' : ''} - "... ${rawResult.trim()} ..."`, resultId: rawResult, type: 'document', query: searchQuery, searchDomain: text });
     }
     if (!res) {
         const words = searchQuery.split(' ');
@@ -86,26 +79,12 @@ function lookupWordsInText(text, rawSearchQuery, responseHeaders, ignore = [], i
                     const rawResult = text.slice(Math.max(0, res - 150), res + 150);
                     if (ignore.includes(rawResult))
                         continue;
-                    return {
-                        ...responseHeaders,
-                        resultOffered: `I couldn't find an exact-text match${isFromWebsite ? ' on that website' : ''}, but I found a match for just "${substr}" - "... ${rawResult.trim()} ...". If necessary, please try searching again with alternative phrasing.`,
-                        resultId: rawResult,
-                        type: 'document',
-                        query: searchQuery,
-                        searchDomain: text,
-                    };
+                    return Object.assign(Object.assign({}, responseHeaders), { resultOffered: `I couldn't find an exact-text match${isFromWebsite ? ' on that website' : ''}, but I found a match for just "${substr}" - "... ${rawResult.trim()} ...". If necessary, please try searching again with alternative phrasing.`, resultId: rawResult, type: 'document', query: searchQuery, searchDomain: text });
                 }
             }
         }
     }
-    return {
-        ...responseHeaders,
-        resultOffered: `I couldn't find ${ignore.length ? 'any more' : 'any'} exact-text mentions of "${searchQuery}"${isFromWebsite ? ' on that website' : ''}. Please try rephrasing to be more generic (one or two word searches are ideal, as this uses exact matching!), or request an alternative query.`,
-        resultId: '',
-        type: 'document',
-        query: searchQuery,
-        isEmpty: true,
-    };
+    return Object.assign(Object.assign({}, responseHeaders), { resultOffered: `I couldn't find ${ignore.length ? 'any more' : 'any'} exact-text mentions of "${searchQuery}"${isFromWebsite ? ' on that website' : ''}. Please try rephrasing to be more generic (one or two word searches are ideal, as this uses exact matching!), or request an alternative query.`, resultId: '', type: 'document', query: searchQuery, isEmpty: true });
 }
 exports.lookupWordsInText = lookupWordsInText;
 function formatSearchResults(results, responseHeaders) {
@@ -119,13 +98,6 @@ function formatSearchResults(results, responseHeaders) {
         result = `Result entitled "${rawRes.name.trim()}" - "${rawRes.snippet}". `;
     }
     result += "Let me know if you would like more excerpts from this source, if you'd like to search for a keyword within this source, or if you would like to conduct a new search.";
-    return {
-        ...responseHeaders,
-        resultOffered: result,
-        resultId: rawRes.url,
-        locator: rawRes.url,
-        otherResults: results.slice(1),
-        type: 'internet',
-    };
+    return Object.assign(Object.assign({}, responseHeaders), { resultOffered: result, resultId: rawRes.url, locator: rawRes.url, otherResults: results.slice(1), type: 'internet' });
 }
 exports.formatSearchResults = formatSearchResults;

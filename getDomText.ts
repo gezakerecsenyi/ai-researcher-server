@@ -63,9 +63,9 @@ export default async function getDomText(domString: string): Promise<string> {
         dom = null;
 
         return rawText
-            .replaceAll(/ {2,}/g, '  ')
-            .replaceAll(/\t+/g, '\t')
-            .replaceAll(/([ \t]*\n)+/g, '\n');
+            .replace(/ {2,}/g, '  ')
+            .replace(/\t+/g, '\t')
+            .replace(/([ \t]*\n)+/g, '\n');
     } catch (e) {
         console.log(e);
         return '';
